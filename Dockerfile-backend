@@ -7,6 +7,7 @@ EXPOSE 8383
 
 # Move files into place
 COPY scan.json /tmp/scan.json
+COPY backend.json /tmp/backend.json
 
 COPY backend.sh /tmp/backend.sh
 COPY common.sh /tmp/common.sh
@@ -23,4 +24,4 @@ RUN git clone https://github.com/mozilla/minion-backend.git ${MINION_BACKEND}
 RUN /bin/bash -c /tmp/backend.sh
 
 # Start up Minion backend
-CMD service mongodb start && service rabbitmq-server start && service minion start && tail -F /var/log/minion/*
+CMD service minion start && tail -F /var/log/minion/*

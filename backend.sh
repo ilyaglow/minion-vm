@@ -10,14 +10,9 @@ MINION_BASE_DIRECTORY=/opt/minion
 apt-get -y install curl \
   libcurl4-openssl-dev \
   libffi-dev \
-  mongodb-server \
   nmap \
   postfix \
-  rabbitmq-server \
   stunnel
-
-# For some reason, it has trouble adding the rabbitmq groups
-apt-get -y install rabbitmq-server
 
 # First, source the virtualenv
 cd ${MINION_BASE_DIRECTORY}
@@ -32,6 +27,7 @@ python setup.py develop
 
 # Configure minion-backend (listening on 0.0.0.0:8383, and with no blacklist)
 mkdir -p /etc/minion
+mv /tmp/backend.json /etc/minion
 mv /tmp/scan.json /etc/minion
 
 # Install minion-nmap-plugin; comment out `git clone` if working on minion-nmap-plugin locally
@@ -51,17 +47,9 @@ echo -e "\n# Minion convenience commands" >> ~minion/.bashrc
 echo -e "alias miniond=\"supervisord -c ${MINION_BASE_DIRECTORY}/minion-backend/etc/supervisord.conf\"" >> ~minion/.bashrc
 echo -e "alias minionctl=\"supervisorctl -c ${MINION_BASE_DIRECTORY}/minion-backend/etc/supervisord.conf\"" >> ~minion/.bashrc
 
-# Start MongoDB
-service mongodb start
-sleep 5
-
-# Start RabbitMQ
-service rabbitmq-server start
-sleep 5
-
 # Start Minion
 service minion start
-sleep 30
+sleep 10
 
 # Create the initial administrator and database
 minion-db-init "$MINION_ADMINISTRATOR_EMAIL" "$MINION_ADMINISTRATOR_NAME" y
@@ -69,11 +57,5 @@ minion-db-init "$MINION_ADMINISTRATOR_EMAIL" "$MINION_ADMINISTRATOR_NAME" y
 # If we're running in Docker, we start these with CMD
 if [[ $MINION_DOCKERIZED == "true" ]]; then
   service minion stop
-  sleep 30
-  service rabbitmq-server stop
-  sleep 5
-
-  # This seems to be broken on Ubuntu 14.04, since it doesn't create the /var/run/mongodb directory
-  # service mongodb stop
-  kill `ps aux | grep mongod | grep -v grep | tr -s ' ' | cut -d ' ' -f 2`
+  sleep 10
 fi
