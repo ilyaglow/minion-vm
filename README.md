@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 # Docker minion-vm
 
 This rework is based on promising unmaintaned mozilla project [minion](https://github.com/mozilla/minion) developed by amazing April King (april@mozilla.com)
+=======
+# minion-vm
+
+This rework is based on promising unmaintaned mozilla project [minion-vm](https://github.com/mozilla/minion-vm) developed by amazing April King (april@mozilla.com)
+>>>>>>> f248e341ebf4f85530f8e0f2bd65026427aba17b
 
 USE ONLY FOR TESTING PURPOSES
 
@@ -42,7 +48,11 @@ LDAP authentication
 
 For this compose I made OpenLDAP database with two predefined users (`admin`:`password` and `minion`:`MinionBuiltin`) that mounts to slapd docker (BE AWARE OF THIS PREDEFINED CREDENTIALS).
 
+<<<<<<< HEAD
 If you want to add another user you can use `ldapadd`:
+=======
+If you want to add another user you can use ldapadd:
+>>>>>>> f248e341ebf4f85530f8e0f2bd65026427aba17b
 
 ```
 ldapadd -D "cn=admin,dc=example,dc=com" -w password -f user.ldif -H ldap://localhost:3389
