@@ -11,8 +11,8 @@ What compose file contains
 - Official rabbitmq image
 - SMTP relay image by @juanluisbaptiste
 - Slapd image by @nickstenning for LDAP authentication (see details below)
-- Dockerfile for [my minion-frontend fork](https://github.com/ilyaglow/minion-frontend) (branch docker-ready)
-- Dockerfile for [my minion-backend fork](https://github.com/ilyaglow/minion-backed) (branch docker-ready too)
+- Dockerfile for [my minion-frontend fork](https://github.com/ilyaglow/minion-frontend/tree/docker-ready) (branch docker-ready)
+- Dockerfile for [my minion-backend fork](https://github.com/ilyaglow/minion-backend/tree/docker-ready) (branch docker-ready too)
 
 How to give it a try
 --------------------
