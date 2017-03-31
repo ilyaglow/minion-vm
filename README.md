@@ -1,6 +1,6 @@
 # minion-vm
 
-This rework is based on promising unmaintaned mozilla project [minion-vm](https://github.com/mozilla/minion-vm)
+This rework is based on promising unmaintaned mozilla project [minion-vm](https://github.com/mozilla/minion-vm) developed by amazing April King (april@mozilla.com)
 
 USE ONLY FOR TESTING PURPOSES
 
@@ -34,13 +34,13 @@ Login as user `minion` and password `MinionBuiltin` on `http://localhost:8080`
 Fill database with test data
 ----------------------------
 
-You can use [this script](https://github.com/mozilla/minion-backend/blob/master/scripts/minion-db-init) from minion-backend repo
+You can use [this script](https://gist.github.com/ilyaglow/b20be35fab7a32c51480f9d96d869ebb) from my gist
 
 
 LDAP authentication
 -------------------
 
-For this compose I made OpenLDAP db with predefined user that mounts to slapd docker.
+For this compose I made OpenLDAP database with two predefined users (`admin`:`password` and `minion`:`MinionBuiltin`) that mounts to slapd docker (BE AWARE OF THIS PREDEFINED CREDENTIALS).
 
 If you want to add another user you can use ldapadd:
 
