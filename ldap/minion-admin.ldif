@@ -1,0 +1,13 @@
+dn: uid=minion,dc=example,dc=com
+uid: minion
+cn: minion
+sn: 1
+objectClass: top
+objectClass: posixAccount
+objectClass: inetOrgPerson
+homeDirectory: /home/minion
+uidNumber: 14583100
+gidNumber: 14564100
+userPassword: MinionBuiltin
+mail: minion@example.com
+gecos: Minion Builtin

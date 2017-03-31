@@ -1,27 +1,65 @@
-# Start with Ubuntu 14.04 (LTS), and build a Minion install up from there
-FROM ubuntu:14.04
-MAINTAINER April King <april@mozilla.com>
+# Based on mozilla/minion-vms and awesome April King (april@mozilla.com) work
+FROM ubuntu:16.04
+LABEL maintainer "ilya@ilyaglotov.com"
+
+ENV MINION_BASE_DIRECTORY /opt/minion
 ENV MINION_BACKEND /opt/minion/minion-backend
-ENV MINION_DOCKERIZED true
+
 EXPOSE 8383
 
-# Move files into place
-COPY scan.json /tmp/scan.json
-COPY backend.json /tmp/backend.json
+# Install packages
+RUN apt-get update && apt-get -y install build-essential \
+    git \
+    libssl-dev \
+    python \
+    python-dev \
+    python-pip \
+    supervisor \
+    curl \
+    libcurl4-openssl-dev \
+    libffi-dev \
+    nmap \
+    stunnel
 
-COPY backend.sh /tmp/backend.sh
-COPY common.sh /tmp/common.sh
+# We install supervisor, but we don't actually need it to startup: /etc/init.d/minion already does that
+RUN update-rc.d -f supervisor remove
 
-RUN chmod 755 /tmp/backend.sh /tmp/common.sh
+RUN mkdir -p ${MINION_BASE_DIRECTORY}
+WORKDIR ${MINION_BASE_DIRECTORY}
 
-# Install common software, setup virtualenv
-RUN /bin/bash -c /tmp/common.sh
+RUN pip install --upgrade distribute
+RUN easy_install --upgrade setuptools
+
+# Create minion user account
+RUN useradd -m minion
+
+# Create all the running directories for minion, locking things down as needed
+RUN install -m 700 \
+    -o minion \
+    -g minion \
+    -d /run/minion \
+    -d /var/lib/minion \
+    -d /var/log/minion \
+    -d ~minion/.python-eggs
 
 # Install minion-backend
-RUN git clone https://github.com/mozilla/minion-backend.git ${MINION_BACKEND}
+RUN git clone -b docker-ready https://github.com/ilyaglow/minion-backend.git ${MINION_BACKEND}
+WORKDIR ${MINION_BACKEND}
+RUN python setup.py develop
+RUN mkdir -p /etc/minion
+COPY scan.json /etc/minion/scan.json
+COPY backend.json /etc/minion/backend.json
 
-# Setup the backend environment
-RUN /bin/bash -c /tmp/backend.sh
+# Add the minion init scripts to the system startup scripts
+RUN cp ${MINION_BASE_DIRECTORY}/minion-backend/scripts/minion-init /etc/init.d/minion
+RUN chown root:root /etc/init.d/minion
+RUN chmod 755 /etc/init.d/minion
+
+# Install minion-nmap-plugin; comment out `git clone` if working on minion-nmap-plugin locally
+# via Vagrant synced folder
+RUN git clone https://github.com/mozilla/minion-nmap-plugin ${MINION_BASE_DIRECTORY}/minion-nmap-plugin
+WORKDIR ${MINION_BASE_DIRECTORY}/minion-nmap-plugin
+RUN python setup.py install
 
 # Start up Minion backend
 CMD service minion start && tail -F /var/log/minion/*

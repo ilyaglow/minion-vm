@@ -4,11 +4,11 @@
     },
 
     "login": {
-        "type": "persona",
+        "type": "ldap",
 
         "ldap": {
-            "uri": "ldaps://ldap.server/",
-            "baseDN": "ou=test,dc=test_dc",
+            "uri": "ldap://ldap-service/",
+            "baseDN": "dc=example,dc=com",
 
             "emailAttribute": "mail",
             "groupMembershipAttribute": "member",
