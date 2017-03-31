@@ -1,26 +1,50 @@
-# Start with Ubuntu 14.04 (LTS), and build a Minion install up from there
-FROM ubuntu:14.04
-MAINTAINER April King <april@mozilla.com>
-ENV MINION_DOCKERIZED true
+# Based on mozilla/minion-vms and awesome April King (april@mozilla.com) work
+FROM ubuntu:16.04
+LABEL maintainer "ilya@ilyaglotov.com"
+
+ENV MINION_BASE_DIRECTORY /opt/minion
 ENV MINION_FRONTEND /opt/minion/minion-frontend
+
 EXPOSE 8080
 
-# Move files into place
-COPY frontend.json /tmp/frontend.json
+# Install packages
+RUN apt-get update && apt-get -y install build-essential \
+    git \
+    libssl-dev \
+    python \
+    python-dev \
+    python-pip \
+    supervisor \
+    libldap2-dev \
+    libsasl2-dev
 
-COPY frontend.sh /tmp/frontend.sh
-COPY common.sh /tmp/common.sh
+# Upgrade setuptools to the newest version, somehow distribute is needed too
+RUN pip install --upgrade distribute
+RUN easy_install --upgrade setuptools
 
-RUN chmod 755 /tmp/frontend.sh /tmp/common.sh
+# Create minion user account
+RUN useradd -m minion
 
-# Install common software, setup virtualenv
-RUN /bin/bash -c /tmp/common.sh
+# Create all the running directories for minion, locking things down as needed
+RUN install -m 700 \
+    -o minion \
+    -g minion \
+    -d /run/minion \
+    -d /var/lib/minion \
+    -d /var/log/minion \
+    -d ~minion/.python-eggs
 
 # Install minion-frontend
-RUN git clone https://github.com/mozilla/minion-frontend.git ${MINION_FRONTEND}
+RUN git clone -b docker-ready https://github.com/ilyaglow/minion-frontend.git ${MINION_FRONTEND}
+WORKDIR ${MINION_FRONTEND}
+RUN python setup.py develop
 
-# Setup the frontend environment
-RUN /bin/bash -c /tmp/frontend.sh
+RUN cp ${MINION_FRONTEND}/scripts/minion-init /etc/init.d/minion
+RUN chown root:root /etc/init.d/minion
+RUN chmod 755 /etc/init.d/minion
+
+RUN mkdir -p /etc/minion
+COPY frontend.json /etc/minion
 
 # Start up the Minion frontend
 CMD service minion start && tail -F /var/log/minion/*

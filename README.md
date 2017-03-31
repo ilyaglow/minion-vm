@@ -1,51 +1,49 @@
-# minion-vm
-Vagrantfile and Dockerfiles to make developing against [Mozilla Minion](https://github.com/mozilla/minion) far easier.
+# Docker minion-vm
 
-**minion-vm** automatically installs the following Minion components:
-* https://github.com/mozilla/minion-backend
-* https://github.com/mozilla/minion-frontend
-* https://github.com/mozilla/minion-nmap-plugin
+This rework is based on promising unmaintaned mozilla project [minion](https://github.com/mozilla/minion) developed by amazing April King (april@mozilla.com)
 
-Configuring minion-vm
----------------------
-Prior to installation, it is necessary to edit `backend.sh` to change the default administrator's email address and name:
+USE ONLY FOR TESTING PURPOSES
+
+What compose file contains
+-----------------------------
+
+- Official mongo image
+- Official rabbitmq image
+- SMTP relay image by @juanluisbaptiste
+- Slapd image by @nickstenning for LDAP authentication (see details below)
+- Dockerfile for [my minion-frontend fork](https://github.com/ilyaglow/minion-frontend) (branch docker-ready)
+- Dockerfile for [my minion-backend fork](https://github.com/ilyaglow/minion-backed) (branch docker-ready too)
+
+How to give it a try
+--------------------
+
+First of all, build all images:
 
 ```
-MINION_ADMINISTRATOR_EMAIL="youremail@yourorganization.org"
-MINION_ADMINISTRATOR_NAME="Your Name"
+docker-compose up
 ```
 
-Configuring Vagrant
+Add administrator user (you should have python and requests package):
+
+```
+wget -O- https://raw.githubusercontent.com/mozilla/minion-backend/master/scripts/minion-create-user | python - minion@example.com "Minion Admin" administrator
+```
+
+Login as user `minion` and password `MinionBuiltin` on `http://localhost:8080`
+
+Fill database with test data
+----------------------------
+
+You can use [this script](https://gist.github.com/ilyaglow/b20be35fab7a32c51480f9d96d869ebb) from my gist
+
+
+LDAP authentication
 -------------------
-* Edit the BACKEND\_SRC, FRONTEND\_SRC, and APT\_CACHE\_SRC variables in `Vagrantfile` to point to their locations on your local system
-* Edit the IP addresses in `Vagrantfile` and `vagrant-hosts.sh` if you want your private network to use something besides 192.168.50.49 and 192.168.50.50
 
-Running Vagrant
----------------
+For this compose I made OpenLDAP database with two predefined users (`admin`:`password` and `minion`:`MinionBuiltin`) that mounts to slapd docker (BE AWARE OF THIS PREDEFINED CREDENTIALS).
+
+If you want to add another user you can use `ldapadd`:
+
 ```
-$ vagrant up
+ldapadd -D "cn=admin,dc=example,dc=com" -w password -f user.ldif -H ldap://localhost:3389
 ```
-
-That's it! The Minion frontend should now be accessible at http://192.168.50.50:8080, or whatever you set the IP address to.
-
-You can also ssh into your new Minion instances with `vagrant ssh minion-frontend` and `vagrant ssh minion-backend`.
-
-Configuring Docker
-------------------
-```
-$ docker build -t 'mozilla/minion-backend'  -f Dockerfile-backend  .
-$ docker build -t 'mozilla/minion-frontend' -f Dockerfile-frontend .
-```
-
-Running Docker
---------------
-```
-$ docker run -d --name 'minion-backend' 'mozilla/minion-backend'
-$ docker run -d -p 8080:8080 --name 'minion-frontend' \
-    --link minion-backend:minion-backend 'mozilla/minion-frontend'
-```
-
-The Minion frontend should now be accessible over HTTP at the IP address of the system running Docker, on port 8080.
-
-You can also get a shell on your new Minion instances with `docker exec -i -t minion-frontend /bin/bash` and
-`docker exec -i -t minion-backend /bin/bash`.

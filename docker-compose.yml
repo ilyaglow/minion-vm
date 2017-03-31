@@ -1,0 +1,36 @@
+version: '3'
+services:
+  minion-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile-backend
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - smtp
+    ports:
+      - 8383:8383
+  minion-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile-frontend
+    depends_on:
+      - minion-backend
+      - ldap-service
+    ports:
+      - 8080:8080
+  rabbitmq:
+    image: "rabbitmq:3"
+  mongodb:
+    image: "mongo"
+  smtp:
+    image: "juanluisbaptiste/postfix"
+    env_file:
+      - ./smtp.env
+  ldap-service:
+    image: "nickstenning/slapd"
+    volumes:
+      - ./ldap/ldap_db:/var/lib/ldap
+      - ./ldap/slapd:/etc/ldap/slapd.d
+    ports:
+      - 3389:389
