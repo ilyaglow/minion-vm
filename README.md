@@ -2,7 +2,7 @@
 
 This rework is based on promising unmaintaned mozilla project [minion](https://github.com/mozilla/minion) developed by amazing April King (april@mozilla.com)
 
-USE ONLY FOR TESTING PURPOSES
+**USE ONLY FOR TESTING PURPOSES**
 
 What compose file contains
 -----------------------------
@@ -29,6 +29,12 @@ Add administrator user (you should have python and requests package):
 wget -O- https://raw.githubusercontent.com/mozilla/minion-backend/master/scripts/minion-create-user | python - minion@example.com "Minion Admin" administrator
 ```
 
+Add minion admin user to ldap database (**BE AWARE OF THIS PREDEFINED CREDENTIALS FOR LDAP AND MINION ADMIN USERS**):
+
+```
+ldapadd -D "cn=admin,dc=example,dc=com" -w password -f minion-admin.ldif -H ldap://localhost:10389
+```
+
 Login as user `minion` and password `MinionBuiltin` on `http://localhost:8080`
 
 Fill database with test data
@@ -36,14 +42,13 @@ Fill database with test data
 
 You can use [this script](https://gist.github.com/ilyaglow/b20be35fab7a32c51480f9d96d869ebb) from my gist
 
-
 LDAP authentication
 -------------------
-
-For this compose I made OpenLDAP database with two predefined users (`admin`:`password` and `minion`:`MinionBuiltin`) that mounts to slapd docker (BE AWARE OF THIS PREDEFINED CREDENTIALS).
 
 If you want to add another user you can use `ldapadd`:
 
 ```
-ldapadd -D "cn=admin,dc=example,dc=com" -w password -f user.ldif -H ldap://localhost:3389
+ldapadd -D "cn=admin,dc=example,dc=com" -w password -f user.ldif -H ldap://localhost:10389
 ```
+
+Use `minion-admin.ldif` file as an example

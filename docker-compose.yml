@@ -29,8 +29,9 @@ services:
       - ./smtp.env
   ldap-service:
     image: "nickstenning/slapd"
-    volumes:
-      - ./ldap/ldap_db:/var/lib/ldap
-      - ./ldap/slapd:/etc/ldap/slapd.d
+    environment:
+      - LDAP_DOMAIN=example.com
+      - LDAP_ORGANISATION="Example Domain"
+      - LDAP_ROOTPASS=password
     ports:
-      - 3389:389
+      - 10389:389

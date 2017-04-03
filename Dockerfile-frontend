@@ -1,4 +1,4 @@
-# Based on mozilla/minion-vms and awesome April King (april@mozilla.com) work
+# Based on mozilla/minion-vm and awesome April King (april@mozilla.com) work
 FROM ubuntu:16.04
 LABEL maintainer "ilya@ilyaglotov.com"
 
