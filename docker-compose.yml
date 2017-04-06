@@ -3,13 +3,15 @@ services:
   minion-backend:
     build:
       context: .
-      dockerfile: Dockerfile-backend
+      dockerfile: Dockerfile-backend-dev
     depends_on:
       - mongodb
       - rabbitmq
       - smtp
     ports:
       - 8383:8383
+    volumes:
+      - ./minion-backend:/opt/minion/minion-backend
   minion-frontend:
     build:
       context: .
@@ -26,7 +28,7 @@ services:
   smtp:
     image: "juanluisbaptiste/postfix"
     env_file:
-      - ./smtp.env
+      - ./conf/smtp.env
   ldap-service:
     image: "nickstenning/slapd"
     environment:

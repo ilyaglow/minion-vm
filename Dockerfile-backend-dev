@@ -1,0 +1,73 @@
+# Based on mozilla/minion-vm and awesome April King (april@mozilla.com) work
+FROM ubuntu:16.04
+LABEL maintainer "ilya@ilyaglotov.com"
+
+ENV MINION_BASE_DIRECTORY /opt/minion
+ENV MINION_BACKEND /opt/minion/minion-backend
+
+EXPOSE 8383
+
+# Install packages
+RUN apt-get update && apt-get -y install build-essential \
+    git \
+    libssl-dev \
+    python \
+    python-dev \
+    python-pip \
+    supervisor \
+    curl \
+    libcurl4-openssl-dev \
+    libffi-dev \
+    nmap \
+    stunnel
+
+# We install supervisor, but we don't actually need it to startup: /etc/init.d/minion already does that
+RUN update-rc.d -f supervisor remove
+
+RUN mkdir -p ${MINION_BASE_DIRECTORY}
+WORKDIR ${MINION_BASE_DIRECTORY}
+
+RUN pip install --upgrade distribute
+RUN easy_install --upgrade setuptools
+
+# Install pip dependencies
+RUN pip install setuptools \
+    six \
+    celery==3.1.25 \
+    flask \
+    pymongo \
+    requests \
+    twisted \
+    pycurl \
+    gunicorn \
+    ipaddress \
+    netaddr \
+    celerybeat-mongo \
+    robots_scanner \
+    nose \
+    mock \
+    pyopenssl
+
+# Create minion user account
+RUN useradd -m minion
+
+# Create all the running directories for minion, locking things down as needed
+RUN install -m 700 \
+    -o minion \
+    -g minion \
+    -d /run/minion \
+    -d /var/lib/minion \
+    -d /var/log/minion \
+    -d ~minion/.python-eggs
+
+# Configure minion-backend
+RUN mkdir -p /etc/minion
+COPY conf/scan.json /etc/minion/scan.json
+COPY conf/backend.json /etc/minion/backend.json
+
+VOLUME /opt/minion/minion-backend
+WORKDIR /opt/minion/minion-backend
+
+# Start up Minion backend
+USER minion
+CMD ./minion-backend-api -a 0.0.0.0 -p 8383 runserver

@@ -1,0 +1,23 @@
+# Based on mozilla/minion-vm and awesome April King (april@mozilla.com) work
+FROM ubuntu:16.04
+LABEL maintainer "ilya@ilyaglotov.com"
+
+ENV MINION_BASE_DIRECTORY /opt/minion
+ENV MINION_FRONTEND /opt/minion/minion-frontend
+
+EXPOSE 8080
+
+# Install packages
+RUN apt-get update && apt-get -y install libssl-dev \
+    python \
+    python-dev \
+    python-pip \
+    libldap2-dev \
+    libsasl2-dev
+
+# Upgrade setuptools to the newest version, somehow distribute is needed too
+RUN pip install --upgrade
+RUN pip install flask \
+    requests \
+    gunicorn \
+    python-ldap

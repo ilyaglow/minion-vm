@@ -1,0 +1,14 @@
+[submodule "minion-frontend"]
+	path = minion-frontend
+	url = git@github.com:ilyaglow/minion-frontend.git
+	branch = docker-ready
+[submodule "minion-backend"]
+	path = minion-backend
+	url = git@github.com:ilyaglow/minion-backend.git
+        branch = docker-ready
+[submodule "plugins/minion-zap-plugin"]
+	path = plugins/minion-zap-plugin
+	url = git@github.com:mozilla/minion-zap-plugin.git
+[submodule "plugins/minion-nmap-plugin"]
+	path = plugins/minion-nmap-plugin
+	url = git@github.com:mozilla/minion-nmap-plugin.git
