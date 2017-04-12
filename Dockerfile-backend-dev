@@ -14,15 +14,11 @@ RUN apt-get update && apt-get -y install build-essential \
     python \
     python-dev \
     python-pip \
-    supervisor \
     curl \
     libcurl4-openssl-dev \
     libffi-dev \
     nmap \
     stunnel
-
-# We install supervisor, but we don't actually need it to startup: /etc/init.d/minion already does that
-RUN update-rc.d -f supervisor remove
 
 RUN mkdir -p ${MINION_BASE_DIRECTORY}
 WORKDIR ${MINION_BASE_DIRECTORY}
@@ -31,9 +27,7 @@ RUN pip install --upgrade distribute
 RUN easy_install --upgrade setuptools
 
 # Install pip dependencies
-RUN pip install setuptools \
-    six \
-    celery==3.1.25 \
+RUN pip install celery==3.1.25 \
     flask \
     pymongo \
     requests \
