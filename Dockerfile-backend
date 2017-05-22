@@ -4,6 +4,7 @@ LABEL maintainer "ilya@ilyaglotov.com"
 
 ENV MINION_BASE_DIRECTORY /opt/minion
 ENV MINION_BACKEND /opt/minion/minion-backend
+ENV ZAP_VERSION 2.4.2
 
 EXPOSE 8383
 
@@ -19,6 +20,8 @@ RUN apt-get update && apt-get -y install build-essential \
     libcurl4-openssl-dev \
     libffi-dev \
     nmap \
+    openjdk-8-jre-headless \
+    unzip \
     stunnel
 
 # We install supervisor, but we don't actually need it to startup: /etc/init.d/minion already does that
@@ -35,31 +38,44 @@ RUN useradd -m minion
 
 # Create all the running directories for minion, locking things down as needed
 RUN install -m 700 \
-    -o minion \
-    -g minion \
+    -o minion \ -g minion \
     -d /run/minion \
     -d /var/lib/minion \
     -d /var/log/minion \
     -d ~minion/.python-eggs
 
 # Install minion-backend
-RUN git clone -b docker-ready https://github.com/ilyaglow/minion-backend.git ${MINION_BACKEND}
-WORKDIR ${MINION_BACKEND}
-RUN python setup.py develop
-RUN mkdir -p /etc/minion
-COPY scan.json /etc/minion/scan.json
-COPY backend.json /etc/minion/backend.json
+RUN git clone -b docker-ready https://github.com/ilyaglow/minion-backend.git ${MINION_BACKEND} \
+  && cd ${MINION_BACKEND} \
+  && python setup.py develop \
+  && mkdir -p /etc/minion
+
+COPY conf/scan.json /etc/minion/scan.json
+COPY conf/backend.json /etc/minion/backend.json
 
 # Add the minion init scripts to the system startup scripts
-RUN cp ${MINION_BASE_DIRECTORY}/minion-backend/scripts/minion-init /etc/init.d/minion
-RUN chown root:root /etc/init.d/minion
-RUN chmod 755 /etc/init.d/minion
+RUN cp ${MINION_BASE_DIRECTORY}/minion-backend/scripts/minion-init /etc/init.d/minion \
+  && chown root:root /etc/init.d/minion \
+  && chmod 755 /etc/init.d/minion
 
 # Install minion-nmap-plugin; comment out `git clone` if working on minion-nmap-plugin locally
 # via Vagrant synced folder
-RUN git clone https://github.com/mozilla/minion-nmap-plugin ${MINION_BASE_DIRECTORY}/minion-nmap-plugin
-WORKDIR ${MINION_BASE_DIRECTORY}/minion-nmap-plugin
-RUN python setup.py install
+RUN git clone https://github.com/mozilla/minion-nmap-plugin \
+    ${MINION_BASE_DIRECTORY}/minion-nmap-plugin \
+  && cd ${MINION_BASE_DIRECTORY}/minion-nmap-plugin \
+  && python setup.py install
+
+# Install ZAP and minion-zap-plugin
+RUN mkdir /tools \
+  && curl -L -o /tools/zap.zip \
+    https://github.com/zaproxy/zaproxy/releases/download/${ZAP_VERSION}/ZAP_${ZAP_VERSION}_Cross_Platform.zip \
+  && cd /tools \
+  && unzip zap.zip \
+  && ln -s /tools/ZAP_${ZAP_VERSION}/zap.sh /usr/bin/zap.sh \
+  && git clone https://github.com/mozilla/minion-zap-plugin \ 
+    ${MINION_BASE_DIRECTORY}/minion-zap-plugin \
+  && cd ${MINION_BASE_DIRECTORY}/minion-zap-plugin \
+  && python setup.py install
 
 # Start up Minion backend
 CMD service minion start && tail -F /var/log/minion/*
