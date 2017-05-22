@@ -38,7 +38,8 @@ RUN useradd -m minion
 
 # Create all the running directories for minion, locking things down as needed
 RUN install -m 700 \
-    -o minion \ -g minion \
+    -o minion \
+    -g minion \
     -d /run/minion \
     -d /var/lib/minion \
     -d /var/log/minion \
