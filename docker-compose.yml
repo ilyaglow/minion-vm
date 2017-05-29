@@ -11,8 +11,6 @@ services:
       - smtp
     ports:
       - 8383:8383
-    volumes:
-      - ./minion-backend:/opt/minion/minion-backend
   minion-frontend:
     build:
       context: .
