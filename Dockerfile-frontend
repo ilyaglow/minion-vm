@@ -44,7 +44,7 @@ RUN chown root:root /etc/init.d/minion
 RUN chmod 755 /etc/init.d/minion
 
 RUN mkdir -p /etc/minion
-COPY frontend.json /etc/minion
+COPY conf/frontend.json /etc/minion
 
 # Start up the Minion frontend
 CMD service minion start && tail -F /var/log/minion/*
