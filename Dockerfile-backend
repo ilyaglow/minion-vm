@@ -1,4 +1,3 @@
-# Based on mozilla/minion-vm and awesome April King (april@mozilla.com) work
 FROM ubuntu:16.04
 LABEL maintainer "ilya@ilyaglotov.com"
 
@@ -46,8 +45,11 @@ RUN install -m 700 \
     -d ~minion/.python-eggs
 
 # Install minion-backend
-RUN git clone -b docker-ready https://github.com/ilyaglow/minion-backend.git ${MINION_BACKEND} \
+RUN git clone -b docker-ready \
+    --depth=1 \
+    https://github.com/ilyaglow/minion-backend.git ${MINION_BACKEND} \
   && cd ${MINION_BACKEND} \
+  && rm -rf .git \
   && python setup.py develop \
   && mkdir -p /etc/minion
 
@@ -59,11 +61,11 @@ RUN cp ${MINION_BASE_DIRECTORY}/minion-backend/scripts/minion-init /etc/init.d/m
   && chown root:root /etc/init.d/minion \
   && chmod 755 /etc/init.d/minion
 
-# Install minion-nmap-plugin; comment out `git clone` if working on minion-nmap-plugin locally
-# via Vagrant synced folder
-RUN git clone https://github.com/mozilla/minion-nmap-plugin \
+# Install minion-nmap-plugin
+RUN git clone --depth=1 https://github.com/mozilla/minion-nmap-plugin \
     ${MINION_BASE_DIRECTORY}/minion-nmap-plugin \
   && cd ${MINION_BASE_DIRECTORY}/minion-nmap-plugin \
+  && rm -rf .git \
   && python setup.py install
 
 # Install ZAP and minion-zap-plugin
@@ -72,11 +74,17 @@ RUN mkdir /tools \
     https://github.com/zaproxy/zaproxy/releases/download/${ZAP_VERSION}/ZAP_${ZAP_VERSION}_Cross_Platform.zip \
   && cd /tools \
   && unzip zap.zip \
+  && rm -rf zap.zip \
   && ln -s /tools/ZAP_${ZAP_VERSION}/zap.sh /usr/bin/zap.sh \
-  && git clone https://github.com/mozilla/minion-zap-plugin \ 
+  && git clone --depth=1 https://github.com/mozilla/minion-zap-plugin \ 
     ${MINION_BASE_DIRECTORY}/minion-zap-plugin \
   && cd ${MINION_BASE_DIRECTORY}/minion-zap-plugin \
   && python setup.py install
 
-# Start up Minion backend
+# Clean up
+RUN apt-get purge -y build-essential \
+    git \
+  && rm -rf /var/lib/apt/lists/*
+
+# Start up the Minion backend
 CMD service minion start && tail -F /var/log/minion/*

@@ -1,4 +1,3 @@
-# Based on mozilla/minion-vm and awesome April King (april@mozilla.com) work
 FROM ubuntu:16.04
 LABEL maintainer "ilya@ilyaglotov.com"
 
@@ -35,9 +34,12 @@ RUN install -m 700 \
     -d ~minion/.python-eggs
 
 # Install minion-frontend
-RUN git clone -b docker-ready https://github.com/ilyaglow/minion-frontend.git ${MINION_FRONTEND}
-WORKDIR ${MINION_FRONTEND}
-RUN python setup.py develop
+RUN git clone -b docker-ready \
+    --depth=1 \
+    https://github.com/ilyaglow/minion-frontend.git ${MINION_FRONTEND} \
+  && cd ${MINION_FRONTEND} \
+  && rm -rf .git \
+  && python setup.py develop
 
 RUN cp ${MINION_FRONTEND}/scripts/minion-init /etc/init.d/minion
 RUN chown root:root /etc/init.d/minion
@@ -45,6 +47,11 @@ RUN chmod 755 /etc/init.d/minion
 
 RUN mkdir -p /etc/minion
 COPY conf/frontend.json /etc/minion
+
+# Clean up
+RUN apt-get purge -y build-essential \
+    git \
+  && rm -rf /var/lib/apt/lists/*
 
 # Start up the Minion frontend
 CMD service minion start && tail -F /var/log/minion/*

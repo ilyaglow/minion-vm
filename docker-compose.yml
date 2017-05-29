@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-backend
+    image: ilyaglow/minion-backend
     depends_on:
       - mongodb
       - rabbitmq
@@ -16,6 +17,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-frontend
+    image: ilyaglow/minion-frontend
     depends_on:
       - minion-backend
       - ldap-service
